@@ -1,0 +1,72 @@
+On-Time Rate_SVG = 
+VAR BaseValue = [_On Time Rate]  // Input measure (0-1 scale)
+
+-- ========================
+-->> Value Safety Checks
+-- ========================
+VAR ClampedValue = 
+    IF(
+        BaseValue < 0 || ISBLANK(BaseValue), 
+        0, 
+        MIN(1, BaseValue)  // Ensure never exceeds 100%
+    )
+
+-- ========================
+-->> SVG Dimensions & Colors
+-- ========================
+VAR ContainerWidth = 900
+VAR ContainerHeight = 150
+VAR ProgressWidth = 660 * ClampedValue
+VAR color = "#5E17EB"  // Main color
+VAR borderColor = "#777171"  // Border color
+
+-- ========================
+-->> SVG Components
+-- ========================
+
+-- Adjusted Y positions to center everything
+VAR ProgressBar = 
+    "<rect x='30' y='60' 
+        width='" & ProgressWidth & "' 
+        height='80' 
+        rx='5' 
+        fill='" & color & "'/>"
+
+VAR ContainerBorder = 
+    "<rect x='5' y='45' 
+        width='710' 
+        height='110' 
+        rx='10' 
+        stroke='" & borderColor & "' 
+        stroke-width='10' 
+        fill='none'/>"
+
+-- Text centered properly
+VAR ValueText = 
+    "<text x='750' y='100' 
+        font-size='150' 
+        fill='" & color & "' 
+        font-weight='600' 
+        dominant-baseline='middle' 
+        text-anchor='start'>" & 
+        IF(ClampedValue <= 0, 
+            "0%", 
+            FORMAT(ClampedValue, "0%")
+        ) & 
+    "</text>"
+
+-- ========================
+-->> Final SVG Assembly
+-- ========================
+VAR svg_full = 
+    "<svg width='1000' height='200' 
+        viewBox='0 0 1000 200' 
+        fill='none' 
+        xmlns='http://www.w3.org/2000/svg'>" & 
+        ProgressBar & 
+        ContainerBorder & 
+        ValueText & 
+    "</svg>"
+
+VAR start_String = "data:image/svg+xml;utf8,"
+RETURN start_String & svg_full

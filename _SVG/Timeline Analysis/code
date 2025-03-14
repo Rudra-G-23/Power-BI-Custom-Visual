@@ -1,0 +1,82 @@
+Timeline SVG = 
+VAR _Booking = MAX('Trip'[Booking Date])
+VAR _Planned = MAX('Trip'[Planned ETA])
+VAR _Actual = MAX('Trip'[Actual ETA])
+
+-- ========================
+-->> Ensure all values exist
+-- ========================
+VAR _IsValid = NOT ISBLANK(_Booking) && NOT ISBLANK(_Planned) && NOT ISBLANK(_Actual)
+
+-- ========================
+-->> Define SVG dimensions
+-- ========================
+VAR _SvgWidth = 120
+VAR _SvgHeight = 20
+VAR _AxisMax = _SvgWidth - 10
+
+-- ========================
+-->> Calculate relative positioning
+-- ========================
+VAR _TotalSpan = DATEDIFF(_Booking, _Actual, DAY) + 1
+VAR _BookingPos = 5
+VAR _PlannedPos = IF(_IsValid, (_AxisMax * DATEDIFF(_Booking, _Planned, DAY)) / _TotalSpan + 5, BLANK())
+VAR _ActualPos = IF(_IsValid, (_AxisMax * DATEDIFF(_Booking, _Actual, DAY)) / _TotalSpan + 5, BLANK())
+
+-- ========================
+-->> Colors
+-- ========================
+VAR _OnTimeColor = "#448FD6" -- Blue
+VAR _DelayedColor = "#D64444" -- Red
+VAR _ActualColor = IF(_Actual > _Planned, _DelayedColor, _OnTimeColor)
+
+-- ========================
+-->> SVG Elements
+-- ========================
+VAR _SvgPrefix = 
+    "data:image/svg+xml;utf8, <svg width=""" & _SvgWidth & 
+    """ height=""" & _SvgHeight & 
+    """ xmlns=""http://www.w3.org/2000/svg"">"
+VAR _SvgSuffix = "</svg>"
+
+VAR _Timeline = 
+    "<line x1=""5"" y1=""" & _SvgHeight/2 & 
+    """ x2=""" & _AxisMax & 
+    """ y2=""" & _SvgHeight/2 & 
+    """ stroke=""#A3A3A3"" stroke-width=""1""/>"
+
+VAR _BookingCircle = 
+    "<circle cx=""" & _BookingPos & 
+    """ cy=""" & _SvgHeight/2 & 
+    """ r=""3"" fill=""white"" stroke=""#A3A3A3""/>"
+
+VAR _PlannedCircle = 
+    "<circle cx=""" & _PlannedPos & 
+    """ cy=""" & _SvgHeight/2 & 
+    """ r=""3"" fill=""#D9D9D9"" stroke=""#A3A3A3""/>"
+
+VAR _ActualCircle = 
+    "<circle cx=""" & _ActualPos & 
+    """ cy=""" & _SvgHeight/2 & 
+    """ r=""3"" fill=""" & _ActualColor & 
+    """ stroke=""" & _ActualColor & """/>"
+
+
+VAR _VarianceLine = 
+    "<line x1=""" & _PlannedPos & 
+    """ y1=""" & _SvgHeight/2 & 
+    """ x2=""" & _ActualPos & 
+    """ y2=""" & _SvgHeight/2 & 
+    """ stroke=""" & _ActualColor & 
+    """ stroke-width=""2""/>"
+
+-- Combine all elements
+VAR _Svg = 
+    _SvgPrefix & _Timeline &
+    _BookingCircle & 
+    _PlannedCircle &
+    _VarianceLine &
+    _ActualCircle & 
+    _SvgSuffix
+
+RETURN _Svg

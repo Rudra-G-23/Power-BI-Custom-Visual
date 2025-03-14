@@ -1,0 +1,52 @@
+Delay_Rate-SVG = 
+
+-- ========================
+-->> Your measure
+-- ========================
+VAR Rate = [_Delayed Shipment Rate]  // Replace with your measure (0-1)
+VAR MainColor = "#5E17EB"
+VAR BackgroundColor = "#D9CCF7"
+
+-- ========================
+-->>  Simple SVG parameters
+-- ========================
+VAR Size = 150 // Total SVG size
+VAR Radius = 45 // Circle radius
+VAR StrokeWidth = 15
+
+-- ========================
+-->> Circle 
+-- ========================
+VAR Circumference = 2 * PI() * Radius
+VAR Progress = Rate * Circumference
+
+// Start String 
+var start_String = "data:image/svg+xml;utf81,"
+
+-- ========================
+-- >> Build SVG
+-- ========================
+VAR SVG = 
+"<svg width='" & Size & "' height='" & Size & "' viewBox='0 0 " & Size & " " & Size & "' xmlns='http://www.w3.org/2000/svg'>" &
+    // Background circle (always shown)
+    "<circle cx='" & Size/2 & "' cy='" & Size/2 & "' r='" & Radius & "' " & 
+        "fill='none' stroke='" & BackgroundColor & "' stroke-width='" & StrokeWidth & "'/>" &
+    
+    // Progress circle (only shown when value > 0)
+    IF(Rate > 0,
+        "<circle cx='" & Size/2 & "' cy='" & Size/2 & "' r='" & Radius & "' " & 
+            "fill='none' stroke='" & MainColor & "' stroke-width='" & StrokeWidth & "' " &
+            "stroke-dasharray='" & Progress & " " & Circumference & "' " &
+            "transform='rotate(-90 " & Size/2 & " " & Size/2 & ")'/>",
+        ""
+    ) &
+    
+    // Center text
+    "<text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' " &
+        "font-size='20' font-weight='bold' fill='black'>" & 
+        FORMAT(Rate, "0%") & 
+    "</text>" &
+"</svg>"
+
+RETURN
+    start_String  & SVG

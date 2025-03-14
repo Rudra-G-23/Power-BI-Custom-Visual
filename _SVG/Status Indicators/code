@@ -1,0 +1,28 @@
+Status SVG 2 = 
+-- ========================
+-->> Your Measure
+-- ========================
+VAR _OnTimePercentage = [_On Time Rate] -- Assuming this is your measure that gives a percentage value
+VAR _Threshold = 0.75 -- 75% threshold
+
+-- ========================
+-->> Determine status based on percentage
+VAR _Status = IF(_OnTimePercentage > _Threshold, "ON TIME", "LATE")
+-- ========================
+
+-- ========================
+-->> Define colors dynamically
+-- ========================
+
+VAR _FillColor = IF(_Status = "ON TIME", "#C3E6CB", "#EBD2CE")  -- Green for On Time, Light Red for Late
+VAR _StrokeColor = IF(_Status = "ON TIME", "#2F7D32", "#982F2F")  -- Dark Green for On Time, Dark Red for Late
+VAR _TextColor = _StrokeColor  -- Use the same color for text
+
+-- SVG Template
+VAR _Svg = 
+    "data:image/svg+xml;utf8, <svg xmlns='http://www.w3.org/2000/svg'>
+    <rect x='0.5' y='0.5' width='98%' height='95%' rx='9.5' fill='" & _FillColor & "' stroke='" & _StrokeColor & "'/>
+    <text x='50%' y='58%' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & _TextColor & "' text-anchor='middle' dominant-baseline='middle'>" & _Status & "</text>
+    </svg>"
+
+RETURN _Svg
